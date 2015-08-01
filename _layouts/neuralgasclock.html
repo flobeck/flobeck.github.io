@@ -1,0 +1,295 @@
+---
+layout: default
+---
+<div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">{{ page.title }}</h1>
+    <p class="post-meta">{{ page.date | date: "%b %-d, %Y" }}{% if page.author %} • {{ page.author }}{% endif %}{% if page.meta %} • {{ page.meta }}{% endif %}</p>
+  </header>
+  
+
+  <article class="post-content">
+  <canvas id="mycanvas" width=100%></canvas>
+  <br> <br> <br>
+    {{ content }}
+  </article>
+
+</div>
+
+
+
+<script src="https://raw.githubusercontent.com/processing-js/processing-js/v1.4.8/processing.min.js"></script>
+<script type="text/processing" data-processing-target="mycanvas">
+
+/**
+ * class: CodebookVector 
+ * 
+ **/
+class CodebookVector {
+  final float t_max = 500.0;
+  
+  PVector w;
+  int i;         // index/order (-> e.g. euclidian norm)
+  float t = 1.0;
+  float time = 1.0; 
+  float neighbourhood = 10.0;
+
+  public CodebookVector(float posx, float posy, int i) {
+    this.i = i;
+    this.w = new PVector(posx, posy);
+  }
+
+  void changeOrder(int i) {
+    this.i = i;
+  }
+
+  void resetTime() {
+    this.t = 1;
+    this.time = 1;
+  }
+
+  float eta(float t) { 
+    return 1-1*(t/t_max); 
+  }
+
+  float lambda(float t) {    
+    return neighbourhood-neighbourhood*(t/t_max);
+  }
+  
+  
+  /**
+   * change the weight vector/codebook vector (posx posy) in direction of input
+   * @input: (x y) from prob. distribution
+   **/
+  void learn(float x, float y) {
+    this.w.x = this.w.x + eta(this.t) * exp(-this.i/lambda(this.t)) * (x - this.w.x);
+    this.w.y = this.w.y + eta(this.t) * exp(-this.i/lambda(this.t)) * (y - this.w.y);
+
+    this.t = t_max*(1 - exp(-0.012*(++this.time)));
+  }
+
+
+  void display() {
+    stroke(0);
+    fill(0);
+    ellipse(this.w.x, this.w.y, 1, 1);
+  }
+}
+
+
+
+
+/**
+ * Neural Gas Clock  
+ * this clock learns something new every second
+ * 
+ */
+static int N = 100;  // number of codebook vectors
+PVector[] digitsDistribution = new PVector[6];
+int lastTime = 0;
+CodebookVector[][] TimeGas = new CodebookVector[6][N];
+
+PVector P(PVector v, int digit, float scale) {
+    //assert digit > -1 && digit < 10;  assert does not work in processingjs!
+    PVector c1 = new PVector(random(v.x, v.x+scale), v.y);
+    PVector c2 = new PVector(v.x, random(v.y, v.y+scale));
+    PVector c3 = new PVector(random(v.x, v.x+scale), v.y+scale);
+    PVector c4 = new PVector(v.x+scale, random(v.y, v.y+scale));
+    PVector c5 = new PVector(v.x, random(v.y+scale, v.y+2*scale));
+    PVector c6 = new PVector(random(v.x, v.x+scale), v.y+2*scale);
+    PVector c7 = new PVector(v.x+scale, random(v.y+scale, v.y+2*scale));
+
+    switch(digit){ 
+    case 0:
+      PVector[] zero = {c1,c2,c4,c5,c6,c7};
+      return zero[floor(random(0, 5.9))];
+    case 1:
+     PVector[] one = {c4,c7};
+     return one[floor(random(0, 1.9))];
+    case 2:
+      PVector[] two = {c1,c3,c4,c5,c6};
+      return two[floor(random(0, 4.9))];
+    case 3:
+      PVector[] three = {c1,c3,c4,c6,c7};
+      return three[floor(random(0, 4.9))];
+    case 4:
+      PVector[] four = {c2,c3,c4,c7};
+      return four[floor(random(0, 3.9))];
+    case 5:
+      PVector[] five = {c1,c2,c3,c6,c7};
+      return five[floor(random(0, 4.9))];
+    case 6:
+      PVector[] six = {c1,c2,c3,c5,c6,c7};
+      return six[floor(random(0, 5.9))];
+    case 7:
+      PVector[] seven = {c1,c4,c7};
+      return seven[floor(random(0, 2.9))];
+    case 8:
+      PVector[] eight = {c1,c2,c3,c4,c5,c6,c7};
+      return eight[floor(random(0, 6.9))];
+    case 9:
+      PVector[] nine = {c1,c2,c3,c4,c6,c7};
+      return nine[floor(random(0, 5.9))];
+    }
+
+    return new PVector(0, 0);
+  }
+
+
+
+void initCodebookVectors(CodebookVector[] cbv, float posx, float posy, int i) {
+  cbv[i] = new CodebookVector(posx, posy, i);
+}
+
+float euclid(PVector a, PVector b) { 
+  return sqrt(pow(a.x-b.x, 2) + pow(a.y-b.y, 2));
+}
+
+
+
+// sorts cbv in terms of distance to vec
+void sort(CodebookVector[] cbv, PVector vec) {
+  boolean unsorted = true;
+  while (unsorted) { 
+    unsorted = false; 
+    for (int i = 0; i<cbv.length-1; i++) {
+      if (euclid(cbv[i].w, vec) > euclid(cbv[i+1].w, vec)) {
+        CodebookVector tmp = cbv[i];
+        cbv[i] = cbv[i+1];
+        cbv[i+1] = tmp;
+        unsorted = true;
+      }
+    }
+  }
+  for (int i = 0; i<cbv.length; i++) {
+    cbv[i].changeOrder(i);
+  }
+}
+
+
+void newDigit() {
+  if (minute()%60 == 0 && hour()%10 == 0) {
+    for (int i=0; i < N; i++)
+      TimeGas[0][i].resetTime();
+  }
+
+  if (minute()%60 == 0 && hour()%10 != 0) {
+    for (int i=0; i < N; i++) 
+      TimeGas[1][i].resetTime();
+  }
+
+  if (minute()%10 == 0 && second()%60 == 0) {
+    for (int i=0; i < N; i++) 
+      TimeGas[2][i].resetTime();
+  } 
+
+  if (second()%60 == 0) { 
+    for (int i=0; i < N; i++)
+      TimeGas[3][i].resetTime();
+  } 
+
+  if (second()%10 == 0) {
+    for (int i=0; i < N; i++)
+      TimeGas[4][i].resetTime();
+  } 
+
+
+  if (millis() - lastTime >= 1000) {
+    for (int i=0; i < N; i++)
+      TimeGas[5][i].resetTime(); 
+
+    lastTime = millis();
+  }
+
+
+  for (int i = 0; i < 6; i++) {
+    int shift = i*120;
+    int scale = 80;
+    int d = 0;
+    switch(i) {
+    case 0: 
+      d = (int)floor(hour()/10);
+      break;
+    case 1: 
+      d = hour()%10;
+      break;
+    case 2: 
+      d = (int)floor(minute()/10);
+      shift += 50;
+      break;
+    case 3: 
+      d = minute()%10;
+      shift += 50;
+      break;
+    case 4: 
+      d = (int)floor(second()/10);
+      shift += 100;
+      break;
+    case 5: 
+      d = second()%10;
+      shift += 100;
+      break;
+    }
+    digitsDistribution[i] = P(new PVector(20 + shift, 30), d, scale);
+  }
+}
+
+
+float halton(float index, float base) {
+  float result = 0;
+  float f = 1/base;
+  float i = index;
+
+  while (i > 0) {
+    result = result + f*(i%base);
+    i = floor(i/base);
+    f = f/base;
+  }
+  return result;
+}
+
+
+
+void setup() {
+  size(820, 250);
+  frameRate(50);
+
+
+  for (int j = 0; j < 6; j++)
+    for (int i = 0; i < N; i++)
+      initCodebookVectors(TimeGas[j], halton(i, 2)*(width/6)+j*(width/6), halton(i, 3)*height, i);
+}
+
+
+void draw() {
+  background(#FFFFFF);
+  newDigit();
+
+
+  for (int i = 0; i < 6; i++) {
+    sort(TimeGas[i], digitsDistribution[i]);
+  }
+
+
+
+  for (int i=0; i < N; i++) {
+    for (int j=0; j < 6; j++) {
+      TimeGas[j][i].learn(digitsDistribution[j].x, digitsDistribution[j].y);
+    }
+  }
+
+
+  for (int i=0; i < N; i++) {
+    for (int j=0; j < 6; j++) {
+      TimeGas[j][i].display();
+    }
+  }
+
+}
+
+
+
+
+
+</script>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<script type="text/javascript"
+    src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width initial-scale=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>Eigenvectors - in sound and vision</title>
+    <meta name="description" content="">
+
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="canonical" href="127.0.0.1:4000/eigen">
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+
+    <a class="site-title" href="/">flobeck</a>
+
+    <nav class="site-nav">
+      <a href="#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+        </svg>
+      </a>
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="/about/">About</a>
+          
+        
+          
+        
+          
+        
+          
+        
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Eigenvectors - in sound and vision</h1>
+    <p class="post-meta">May 31, 2015</p>
+  </header>
+
+  <article class="post-content">
+    <p>The concept of dimensions pops up within a multitude of contexts and
+even in every day life on a regular basis; a line is
+one-dimensional, a cube has 3 dimensions etc. It may generally be
+defined as the minimum number of coordinates
+required to uniquely describe a point within a space. However, different
+contexts require different definitions.
+In terms of vector spaces, one
+valid definition of dimension is the cardinality of the generating set
+of that space.</p>
+
+<p>To reduce dimensions of high-dimensional data points we need to project them to
+a not-so-high-dimensional space. To do so one must find components/vectors
+which maximize variance. These components are called eigenvectors and are the
+result of a principal component analysis (PCA). High-dimensional data points
+(e.g. an image or a song) of some dimension <script type="math/tex">d_1</script> are projected to a hyperplane
+of dimension <script type="math/tex">% <![CDATA[
+d_2 << d_1 %]]></script>. This hyperplane is spanned by eigenvectors.
+It would be nice to make this concept a little
+more tangible, to visualize it in some way. And, while we are at it,
+there is no need to restrict ourselves to the visual modality, we can
+also try and make a high dimensional space (or it’s reduced components) audible as well.</p>
+
+<p>Eigenfaces are probably the most popular eigenvectors.</p>
+
+<h1 id="the-face-space">The face space</h1>
+
+<p>A picture is most naturally represented as a matrix of
+pixel values. However, the rows of the matrix might as well be
+concatenated into one long row vector, i.e. be represented as points in
+an ‘image space’. For simplicity’s sake let’s narrow it down some more
+and consider only gray scale images and only images depicting human
+faces. Despite these constraints, your ‘face space’ is still huge, for
+250x250 pixel images its dimension is just that, 62500.</p>
+
+<p><em>Eigenfaces are the eigenvectors of the covariance matrix of the face vector space.</em></p>
+
+<p>Step by step:</p>
+
+<p>Let <script type="math/tex">P</script> be a matrix build from row vectors <script type="math/tex">P_i^T, \; 1 \leq i \leq N</script> is a mean-subtracted grayscale picture</p>
+
+<script type="math/tex; mode=display">P = \begin{bmatrix}
+P_1^T \\
+\dots \\
+P_N^T \\
+\end{bmatrix}</script>
+
+<p>where the <script type="math/tex">i^{th}</script> row vector <script type="math/tex">P_i^T</script> is</p>
+
+<script type="math/tex; mode=display">(\underbrace{P_{i1} - \bar{P}_{i1}}_{\text{1st mean-subtracted pixel of } i^{th} \text{ picture}} \dots \; P_{im}-\bar{P}_{im})</script>
+
+<p>The scatter matrix then is</p>
+
+<script type="math/tex; mode=display">S = P^TP \in [0,1]^{m^2 \times m^2}</script>
+
+<p>So <script type="math/tex">S</script> is a <script type="math/tex">m^2 \times m^2</script> matrix, where <script type="math/tex">m</script> is the number of pixels in one picture.</p>
+
+<p>Now the last step is to compute the eigenvectors of <script type="math/tex">S</script>, but even if we use small images,
+<script type="math/tex">S</script> will be huge and computation expensive.</p>
+
+<p>Game over?</p>
+
+<p>No! Fortunately we can make use of the following property:</p>
+
+<p>If <script type="math/tex">v</script> is an eigenvector of <script type="math/tex">PP^T</script> then:</p>
+
+<script type="math/tex; mode=display">(P^TP) P^Tv = \lambda P^Tv</script>
+
+<p>This means we can compute the eigenvectors of <script type="math/tex">P^TP</script> by computing the eigenvectors
+of the much smaller matrix <script type="math/tex">PP^T \in [0,1]^{N \times N}</script>:</p>
+
+<p>Let <script type="math/tex">e_i</script> be such an eigenvector, then: <script type="math/tex">P^Te_i</script> is an eigenvector of <script type="math/tex">P^TP</script>
+Now normalize <script type="math/tex">P^Te_i</script> and the results are the eigenfaces:</p>
+
+<script type="math/tex; mode=display">eigenface_i = \frac{P^Te_i}{||P^Te_i||}</script>
+
+<p>All this can be directly translated to Python (numpy is your friend):</p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">eigen</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">linalg</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+    <span class="n">p_</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">P</span> <span class="o">=</span> <span class="n">p</span> <span class="o">-</span> <span class="n">p_</span>
+
+    <span class="n">evalues</span><span class="p">,</span><span class="n">evectors</span> <span class="o">=</span> <span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">P</span><span class="p">)))</span>
+
+    <span class="n">args</span>  <span class="o">=</span> <span class="n">evalues</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span>
+    <span class="n">evectors</span> <span class="o">=</span> <span class="n">evectors</span><span class="p">[</span><span class="n">args</span><span class="p">]</span>
+    <span class="n">evectors</span> <span class="o">=</span> <span class="n">evectors</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">P_evectors</span> <span class="o">=</span> <span class="p">[(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">P</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">evector</span><span class="p">)))</span>
+		  <span class="k">for</span> <span class="n">evector</span> <span class="ow">in</span> <span class="n">evectors</span><span class="p">]</span>
+    <span class="n">eigen</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">P_evectors</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">eigen</span></code></pre></div>
+
+<p><br /></p>
+
+<p><br /></p>
+
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">fetch_olivetti_faces</span>
+
+<span class="n">n_row</span><span class="p">,</span> <span class="n">n_col</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">;</span> <span class="n">n_eigenfaces</span> <span class="o">=</span> <span class="n">n_row</span> <span class="o">*</span> <span class="n">n_col</span>
+<span class="n">faces</span> <span class="o">=</span> <span class="n">fetch_olivetti_faces</span><span class="p">(</span><span class="n">shuffle</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">random_state</span><span class="o">=</span><span class="n">RandomState</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">data</span>
+<span class="n">eigenface</span> <span class="o">=</span> <span class="n">eigen</span><span class="p">(</span><span class="n">faces</span><span class="p">)</span>
+
+<span class="n">plot_gallery</span><span class="p">(</span><span class="s">&quot;Eigenfaces&quot;</span><span class="p">,</span> <span class="n">eigenface</span><span class="p">[:</span><span class="n">n_eigenfaces</span><span class="p">],</span> <span class="n">n_col</span><span class="p">,</span> <span class="n">n_row</span><span class="p">)</span></code></pre></div>
+
+<p align="center"><img src="/assets/eigen/eigenfaces.png" alt="" style="width:500px;height:500px" /></p>
+
+<h1 id="eigenbach">Eigenbach?</h1>
+
+<p>The function <code>eigen(.)</code> is not specially tailored for faces. As long as the argument is a matrix…
+So what happens if our argument is a matrix of sound files? How about some Johann Sebastian Bach?</p>
+
+<p>Well, the problem is:</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">&gt; du -sh /home/f/Musik/Johann<span class="se">\ </span>Sebastian<span class="se">\ </span>Bach/Bach<span class="se">\ </span>Complete<span class="se">\ </span>Works<span class="se">\</span>
+15G	/home/f/Musik/Johann Sebastian Bach/Bach Complete Works</code></pre></div>
+
+<p>As written above; the task would be to multiply <script type="math/tex">P</script> with <script type="math/tex">P^T</script>, but these matrices are 15G large…</p>
+
+<p>So since Bach was quite productive I chose a very small subset, namely <em>The Well-Tempered Clavier</em> (a reasonable set of 98 .mp3 files).
+I converted the .mp3s to .wavs using mpg123 and then used the first million frames of every .wav, which
+then resulted in 1000000/44100 = 22.68 s long <em>eigenclaviers</em> <script type="math/tex">c_i, 0 \leq i \leq 96</script> or rather
+<em>partial-eigenclaviers</em> (slowly eigen* becomes a well-worn prefix).</p>
+
+<p>However I uploaded the <a href="https://www.youtube.com/playlist?list=PLh8vTOEagC0IG6YjpqugFantJQUrGNArs">first ten</a>.
+Out of the first ten, these three may be the most interesting:</p>
+
+<object data="http://www.youtube.com/embed/_fvoA_LHguI" width="560" height="315"></object>
+<object data="https://www.youtube.com/embed/uQsKtYHn9lk" width="560" height="315"></object>
+<object data="https://www.youtube.com/embed/Ru6nq9RPcGQ" width="560" height="315"></object>
+
+  </article>
+
+</div>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+
+    <div class="footer-col-wrapper">
+
+
+      <div class="footer-col  footer-col-2">
+        <ul class="social-media-list">
+          
+          <li>
+            <a href="https://github.com/flobeck">
+              <span class="icon  icon--github">
+                <svg viewBox="0 0 16 16">
+                  <path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/>
+                </svg>
+              </span>
+
+              <span class="username">flobeck</span>
+            </a>
+          </li>
+          
+
+          
+        </ul>
+      </div>
+
+      <div class="footer-col  footer-col-3">
+        <p class="text"></p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+
+
+  </body>
+
+</html>

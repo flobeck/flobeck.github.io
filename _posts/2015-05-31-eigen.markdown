@@ -1,0 +1,163 @@
+---
+layout: post
+title: "Eigenvectors - in sound and vision"
+date: 2015-05-31
+---
+
+
+The concept of dimensions pops up within a multitude of contexts and
+even in every day life on a regular basis; a line is
+one-dimensional, a cube has 3 dimensions etc. It may generally be
+defined as the minimum number of coordinates
+required to uniquely describe a point within a space. However, different
+contexts require different definitions.
+In terms of vector spaces, one
+valid definition of dimension is the cardinality of the generating set
+of that space.
+
+To reduce dimensions of high-dimensional data points we need to project them to
+a not-so-high-dimensional space. To do so one must find components/vectors
+which maximize variance. These components are called eigenvectors and are the
+result of a principal component analysis (PCA). High-dimensional data points
+(e.g. an image or a song) of some dimension $$d_1$$ are projected to a hyperplane
+of dimension $$d_2 << d_1$$. This hyperplane is spanned by eigenvectors.
+It would be nice to make this concept a little
+more tangible, to visualize it in some way. And, while we are at it,
+there is no need to restrict ourselves to the visual modality, we can
+also try and make a high dimensional space (or it's reduced components) audible as well.
+
+Eigenfaces are probably the most popular eigenvectors.
+
+# The face space
+
+A picture is most naturally represented as a matrix of
+pixel values. However, the rows of the matrix might as well be
+concatenated into one long row vector, i.e. be represented as points in
+an 'image space'. For simplicity's sake let's narrow it down some more
+and consider only gray scale images and only images depicting human
+faces. Despite these constraints, your 'face space' is still huge, for
+250x250 pixel images its dimension is just that, 62500.
+
+
+
+_Eigenfaces are the eigenvectors of the covariance matrix of the face vector space._
+
+
+Step by step:
+
+
+Let $$P$$ be a matrix build from row vectors $$P_i^T, \; 1 \leq i \leq N$$ is a mean-subtracted grayscale picture
+
+$$
+P = \begin{bmatrix}
+P_1^T \\
+\dots \\
+P_N^T \\
+\end{bmatrix}
+$$
+
+where the $$i^{th}$$ row vector $$P_i^T$$ is
+
+$$(\underbrace{P_{i1} - \bar{P}_{i1}}_{\text{1st mean-subtracted pixel of } i^{th} \text{ picture}} \dots \; P_{im}-\bar{P}_{im})$$
+
+
+The scatter matrix then is
+
+$$
+S = P^TP \in [0,1]^{m^2 \times m^2}
+$$
+
+So $$S$$ is a $$m^2 \times m^2$$ matrix, where $$m$$ is the number of pixels in one picture.
+
+Now the last step is to compute the eigenvectors of $$S$$, but even if we use small images,
+$$S$$ will be huge and computation expensive.
+
+Game over?
+
+No! Fortunately we can make use of the following property:
+
+
+If $$v$$ is an eigenvector of $$PP^T$$ then:
+
+$$(P^TP) P^Tv = \lambda P^Tv$$
+
+This means we can compute the eigenvectors of $$P^TP$$ by computing the eigenvectors
+of the much smaller matrix $$PP^T \in [0,1]^{N \times N}$$:
+
+Let $$e_i$$ be such an eigenvector, then: $$P^Te_i$$ is an eigenvector of $$P^TP$$
+Now normalize $$P^Te_i$$ and the results are the eigenfaces:
+
+$$eigenface_i = \frac{P^Te_i}{||P^Te_i||}$$
+
+
+All this can be directly translated to Python (numpy is your friend):
+
+
+{% highlight python %}
+def eigen(p):
+    from numpy import linalg
+
+    p = np.matrix(p)
+    p_ = p.mean(axis=0)
+    P = p - p_
+
+    evalues,evectors = linalg.eig(np.dot(P, np.transpose(P)))
+
+    args  = evalues.argsort()
+    evectors = evectors[args]
+    evectors = evectors[::-1]
+
+    P_evectors = [(np.dot(np.transpose(P), np.transpose(evector)))
+		  for evector in evectors]
+    eigen = map(lambda e: e/np.linalg.norm(e), P_evectors)
+
+    return eigen
+
+{% endhighlight python %}
+
+<br>
+
+<br>
+
+{% highlight python %}
+from sklearn.datasets import fetch_olivetti_faces
+
+n_row, n_col = 4, 4; n_eigenfaces = n_row * n_col
+faces = fetch_olivetti_faces(shuffle=True,random_state=RandomState(0)).data
+eigenface = eigen(faces)
+
+plot_gallery("Eigenfaces", eigenface[:n_eigenfaces], n_col, n_row)
+
+{% endhighlight python %}
+
+<p align="center"><img src="/assets/eigen/eigenfaces.png" alt="" style="width:500px;height:500px"></p>
+
+# Eigenbach?
+
+The function ``eigen(.)`` is not specially tailored for faces. As long as the argument is a matrix...
+So what happens if our argument is a matrix of sound files? How about some Johann Sebastian Bach?
+
+Well, the problem is:
+
+{% highlight bash %}
+> du -sh /home/f/Musik/Johann\ Sebastian\ Bach/Bach\ Complete\ Works\
+15G	/home/f/Musik/Johann Sebastian Bach/Bach Complete Works
+{% endhighlight bash %}
+
+As written above; the task would be to multiply $$P$$ with $$P^T$$, but these matrices are 15G large...
+
+
+
+So since Bach was quite productive I chose a very small subset, namely *The Well-Tempered Clavier* (a reasonable set of 98 .mp3 files).
+I converted the .mp3s to .wavs using mpg123 and then used the first million frames of every .wav, which
+then resulted in 1000000/44100 = 22.68 s long *eigenclaviers* $$c_i, 0 \leq i \leq 96 $$ or rather
+*partial-eigenclaviers* (slowly eigen* becomes a well-worn prefix).
+
+
+However I uploaded the [first ten](https://www.youtube.com/playlist?list=PLh8vTOEagC0IG6YjpqugFantJQUrGNArs).
+Out of the first ten, these three may be the most interesting:
+
+
+<object data="http://www.youtube.com/embed/_fvoA_LHguI" width="560" height="315"></object>
+<object data="https://www.youtube.com/embed/uQsKtYHn9lk" width ="560" height="315"></object>
+<object data="https://www.youtube.com/embed/Ru6nq9RPcGQ" width ="560" height="315"></object>
