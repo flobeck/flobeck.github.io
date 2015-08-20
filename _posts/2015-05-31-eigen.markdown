@@ -46,7 +46,7 @@ _Eigenfaces are the eigenvectors of the covariance matrix of the face vector spa
 Step by step:
 
 
-Let $$P$$ be a matrix build from row vectors $$P_i^T, \; 1 \leq i \leq N$$ is a mean-subtracted grayscale picture
+Let $$P$$ be a matrix build from row vectors $$P_i^T, \; 1 \leq i \leq N$$ 
 
 $$
 P = \begin{bmatrix}
