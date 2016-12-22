@@ -11,3 +11,5 @@ github_username:  flobeck
 
 # Build settings
 markdown: kramdown
+
+google_analytics: UA-89397928-1
