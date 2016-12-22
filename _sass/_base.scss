@@ -91,7 +91,6 @@ h1, h2, h3, h4, h5, h6 {
 a {
     color: $brand-color;
     text-decoration: none;
-
     &:visited {
         color: darken($brand-color, 15%);
     }
@@ -127,10 +126,10 @@ blockquote {
  */
 pre,
 code {
-    font-size: 15px;
+    font-size: $small-font-size;
     border: 1px solid $grey-color-light;
     border-radius: 3px;
-    background-color: #eef;
+    background-color: #dbdbdb;
 }
 
 code {
@@ -201,4 +200,27 @@ pre {
             fill: $grey-color;
         }
     }
+}
+
+
+/**
+ * Tables
+ */
+.table {
+       	border-collapse: collapse;
+	margin-left: auto; 
+	margin-right: auto;
+      	> table, td, th {
+		border: 1px solid black;
+	}
+}
+
+
+
+
+/**
+ * Center
+ */
+.center {
+	text-align: center;
 }
