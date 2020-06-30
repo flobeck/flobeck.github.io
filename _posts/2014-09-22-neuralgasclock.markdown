@@ -4,12 +4,12 @@ title:  "Neural Gas Clock"
 date:   2014-09-22 21:10:55
 ---
 
-"Neural gases" are artificial neural networks for vector quantization. They can learn probability distributions or topologies in general. They were first introduced in 1991 by Thomas Martinez and Klaus Schulten, who are researchers in the field of neuroinformatics.
+*Neural gases* are artificial neural networks for vector quantization. They can learn probability distributions or topologies in general. They were first introduced in 1991 by Thomas Martinez and Klaus Schulten, who are researchers in the field of neuroinformatics.
 Fast convergence (especially when you are learning a non-static probability distribution as it is the case here) is crucial for applications of vector quantization. As you can see, readability of seconds is an issue. This -of course- can be improved.
 
 The neural gas algorithm is detailed in the original paper[^1]. In this post, I want to give a short explanation based on this clock.
 
-The (euclidian) topologies which are learned in this case are digits, as displayed by digital clocks using a seven-segment LED display. In my code those segments are implemented as simple lines.
+The (Euclidean) topologies which are learned in this case are digits, as displayed by digital clocks using a seven-segment LED display. In my code those segments are implemented as simple lines.
 Every digit is made up of $$N$$ 2-dimensional ***codebook vectors*** $$w_1, w_2, ... ,w_N$$. These vectors are visualized as the little dots you can see whirling around in the above clock.
 Here, the codebook vectors are initialized deterministically ([Halton sequence](http://en.wikipedia.org/wiki/Halton_sequence)). Then, a data vector $$x$$ (i.e. a point situated on one of the line segments of the digit) is chosen randomly. In the following, every single one of the $$N$$ codebook vectors is adapted to $$x$$.
 
