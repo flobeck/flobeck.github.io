@@ -7,7 +7,7 @@ permalink: /about/
 
 Hi, I'm Flo.
 
-Currently I am working towards my PhD in computer science at [Simula Metropolitan](https://www.simulamet.no/) in Oslo, Norway. My Phd revolves around matrix and tensor factorization.
+Currently I am working towards my PhD in computer science at [Simula Metropolitan](https://www.simulamet.no/) in Oslo, Norway. My PhD revolves around matrix and tensor factorization.
 Before that I studied {cognitive, computer} science in {Tübingen, Göttingen, Karlsruhe}.
 
 <br> <br>
